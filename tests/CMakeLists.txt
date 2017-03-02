@@ -3,7 +3,8 @@ set(rustdemangle_tests_sources
 )
 
 add_executable(rustdemangle_tests ${rustdemangle_tests_sources})
-include_directories("${CMAKE_CURRENT_SOURCE_DIR}")
+
+include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${RUSTDEMANGLE_SOURCE_DIR})
 
 target_link_libraries(rustdemangle_tests
   rustdemangle

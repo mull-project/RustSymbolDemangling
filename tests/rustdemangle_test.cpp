@@ -1,6 +1,12 @@
 
+#include "rustdemangle.h"
+
 #include "gtest/gtest.h"
 
 TEST(rustdemangle, greenWIP) {
-  ASSERT_EQ(nullptr, nullptr);
+  std::string input = "_ZN4testE";
+
+  std::string output = rustdemangle(input);
+
+  ASSERT_EQ(output, "test");
 }
