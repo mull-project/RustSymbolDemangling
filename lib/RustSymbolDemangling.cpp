@@ -9,6 +9,14 @@
 
 using namespace std;
 
+bool RSDParseComponents(std::string &inputString,
+                        std::vector<std::string>& components);
+
+std::string RSDDemangleComponents(std::vector<std::string>& components,
+                                  bool skipHashes = false);
+
+bool RSDIsRustHash(std::string &string);
+
 static map<string, string> RustDemangleDollarMap = {
   { "$SP$", "@" },
   { "$BP$", "*" },
