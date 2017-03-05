@@ -34,14 +34,26 @@ static map<string, string> RustDemangleDollarMap = {
 };
 
 std::string RustSymbolDemangle(std::string &s, bool skipHashes) {
-  Demangle demangle = RSDParseComponents(s);
+  vector<string> components;
+  bool success = RSDParseComponents(s, components);
 
-  std::string result = RSDDemangleComponents(demangle, skipHashes);
+  if (success == false) return std::string(s);
 
-  return result;
+    std::string result = RSDDemangleComponents(components, skipHashes);
+    return result;
 }
 
-Demangle RSDParseComponents(std::string &s) {
+bool RSDIsRustHash(std::string &string) {
+  if (string.at(0) != 'h') {
+    return false;
+  }
+
+  return all_of(string.begin() + 1, string.end(), [] (const char &c) {
+    return ishexnumber((int)c);
+  });
+}
+
+bool RSDParseComponents(std::string &s, vector<string>& components) {
 
   bool valid = true;
 
@@ -56,17 +68,8 @@ Demangle RSDParseComponents(std::string &s) {
     valid = false;
   }
 
-  std::vector<std::string> elements;
-
   if (valid == false) {
-    Demangle result = {
-      .original = s,
-      .valid = false,
-      .elements = {},
-      .inner = inner
-    };
-
-    return result;
+    return false;
   }
 
   string::iterator current = inner.begin();
@@ -101,39 +104,20 @@ Demangle RSDParseComponents(std::string &s) {
 
     current += i;
 
-    elements.push_back(element);
+    components.push_back(element);
   }
 
-  Demangle result = {
-    .original = s,
-    .valid = valid,
-    .elements = elements,
-    .inner = inner
-  };
-
-  return result;
+  return true;
 }
 
-bool RSDIsRustHash(std::string &string) {
-  if (string.at(0) != 'h') {
-    return false;
-  }
-
-  return all_of(string.begin() + 1, string.end(), [] (const char &c) {
-    return ishexnumber((int)c);
-  });
-}
-
-std::string RSDDemangleComponents(Demangle demangle, bool skipHashes) {
-  assert(demangle.valid);
-
+std::string RSDDemangleComponents(vector<string>& components, bool skipHashes) {
   std::string result;
 
-  for (int index = 0; index < demangle.elements.size(); ++index) {
-    std::string &component = demangle.elements.at(index);
+  for (int index = 0; index < components.size(); ++index) {
+    std::string &component = components.at(index);
 
     if (skipHashes &&
-        index == (demangle.elements.size() - 1) &&
+        index == (components.size() - 1) &&
         RSDIsRustHash(component)) {
       break;
     }

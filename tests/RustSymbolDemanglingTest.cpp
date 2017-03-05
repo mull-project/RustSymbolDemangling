@@ -8,29 +8,26 @@
 TEST(RSDParseComponents, basic_one_component) {
   std::string input = "_ZN4testE";
 
-  Demangle output = RSDParseComponents(input);
+  std::vector<std::string> components;
+  bool success = RSDParseComponents(input, components);
 
-  ASSERT_EQ(output.original, input);
-  ASSERT_EQ(output.valid, true);
-  ASSERT_EQ(output.inner, "4test");
+  ASSERT_TRUE(success);
 
-  std::vector<std::string> expectedElements({ "test" });
-
-  ASSERT_EQ(output.elements, expectedElements);
+  std::vector<std::string> expectedComponents({ "test" });
+  ASSERT_EQ(components, expectedComponents);
 }
 
 TEST(RSDParseComponents, basic_many_components) {
   std::string input = "_ZN4test1a2bcE";
 
-  Demangle output = RSDParseComponents(input);
+  std::vector<std::string> components;
+  bool success = RSDParseComponents(input, components);
 
-  ASSERT_EQ(output.original, input);
-  ASSERT_EQ(output.valid, true);
-  ASSERT_EQ(output.inner, "4test1a2bc");
+  ASSERT_TRUE(success);
 
-  std::vector<std::string> expectedElements({ "test", "a", "bc" });
+  std::vector<std::string> expectedComponents({ "test", "a", "bc" });
 
-  ASSERT_EQ(output.elements, expectedElements);
+  ASSERT_EQ(components, expectedComponents);
 }
 
 #pragma mark - Test: RSDDemangleComponents()
@@ -38,16 +35,9 @@ TEST(RSDParseComponents, basic_many_components) {
 TEST(RSDDemangleComponents, many_components) {
   std::string original = "_ZN4test1a2bcE";
   std::string inner = "4test1a2bc";
-  std::vector<std::string> elements({ "test", "a", "bc" });
+  std::vector<std::string> components({ "test", "a", "bc" });
 
-  Demangle demangle = {
-    .original = original,
-    .valid = true,
-    .elements = elements,
-    .inner = inner
-  };
-
-  std::string output = RSDDemangleComponents(demangle);
+  std::string output = RSDDemangleComponents(components);
 
   ASSERT_EQ(output, "test::a::bc");
 }
