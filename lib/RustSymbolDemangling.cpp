@@ -70,8 +70,11 @@ bool RSDParseComponents(std::string &s, vector<string>& components) {
   if (s.size() > 4 &&
       s.compare(0, strlen("_ZN"), "_ZN") == 0 &&
       *s.rbegin() == 'E') {
-
     inner = s.substr(3, s.size() - 1 - 3);
+  } else if (s.size() > 3 &&
+             s.compare(0, strlen("ZN"), "ZN") == 0 &&
+             *s.rbegin() == 'E') {
+    inner = s.substr(2, s.size() - 1 - 2);
   } else {
     valid = false;
   }

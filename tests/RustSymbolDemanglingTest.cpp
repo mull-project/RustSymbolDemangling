@@ -81,6 +81,18 @@ TEST(RustSymbolDemangle, dollar_many) {
   ASSERT_EQ(output, "test*test::foob");
 }
 
+TEST(RustSymbolDemangle, windows_style_one_component) {
+  std::string original = "ZN4testE";
+
+  std::string output = RustSymbolDemangle(original);
+
+  ASSERT_EQ(output, "test");
+}
+
+//  t!("ZN13test$u20$test4foobE", "test test::foob");
+//  t!("ZN12test$RF$test4foobE", "test&test::foob");
+//}
+
 TEST(RustSymbolDemangle, trait_impls) {
   std::string original = "_ZN71_$LT$Test$u20$$u2b$$u20$$u27$static$u20$as$u20$foo..Bar$LT$Test$GT$$GT$3barE";
 
