@@ -34,14 +34,14 @@ static map<string, string> RustDemangleDollarMap = {
 };
 
 std::string RustSymbolDemangle(std::string &s, bool skipHashes) {
-  Demangle demangle = rustdemangle(s);
+  Demangle demangle = RSDParseComponents(s);
 
-  std::string result = rustdemangleDisplay(demangle, skipHashes);
+  std::string result = RSDDemangleComponents(demangle, skipHashes);
 
   return result;
 }
 
-Demangle rustdemangle(std::string &s) {
+Demangle RSDParseComponents(std::string &s) {
 
   bool valid = true;
 
@@ -114,7 +114,7 @@ Demangle rustdemangle(std::string &s) {
   return result;
 }
 
-bool RustSymbolIsHash(std::string &string) {
+bool RSDIsRustHash(std::string &string) {
   if (string.at(0) != 'h') {
     return false;
   }
@@ -124,7 +124,7 @@ bool RustSymbolIsHash(std::string &string) {
   });
 }
 
-std::string rustdemangleDisplay(Demangle demangle, bool skipHashes) {
+std::string RSDDemangleComponents(Demangle demangle, bool skipHashes) {
   assert(demangle.valid);
 
   std::string result;
@@ -134,7 +134,7 @@ std::string rustdemangleDisplay(Demangle demangle, bool skipHashes) {
 
     if (skipHashes &&
         index == (demangle.elements.size() - 1) &&
-        RustSymbolIsHash(component)) {
+        RSDIsRustHash(component)) {
       break;
     }
 

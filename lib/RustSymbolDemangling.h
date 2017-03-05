@@ -11,6 +11,7 @@ typedef struct {
 
 std::string RustSymbolDemangle(std::string &s, bool skipHashes = false);
 
-extern Demangle rustdemangle(std::string &inputString);
-std::string rustdemangleDisplay(Demangle demangle, bool skipHashes = false);
-bool RustSymbolIsHash(std::string &string);
+// These are exposed for unit testing.
+Demangle RSDParseComponents(std::string &inputString);
+std::string RSDDemangleComponents(Demangle demangle, bool skipHashes = false);
+bool RSDIsRustHash(std::string &string);

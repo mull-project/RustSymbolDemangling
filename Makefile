@@ -2,10 +2,8 @@
 BUILD_DIR_XCODE?=$(PWD)/BuildXcode
 BUILD_DIR_NINJA?=$(PWD)/BuildNinja
 
-RUSTDEMANGLE_UNITTESTS_DIR=$(BUILD_DIR_NINJA)/unittests
-RUSTDEMANGLE=$(RUSTDEMANGLE_UNITTESTS_DIR)/RustDemangleUnitTests
-
-RUSTDEMANGLE_CMAKE_TOOLCHAIN?=$(PWD)/RustDemangle.toolchain.OSX.cmake
+RSD_UNITTESTS_DIR=$(BUILD_DIR_NINJA)/unittests
+RSD=$(RSD_UNITTESTS_DIR)/RustSymbolDemanglingUnitTests
 
 # Self-Documented Makefile
 # http://marmelab.com/blog/2016/02/29/auto-documented-makefile.html
@@ -16,11 +14,11 @@ help: ## Show this help message.
 test: test_unit test_integration
 
 test_unit: build_ninja ## Run Unit Tests (Builds Ninja cache first if it does not exist)
-	cd $(BUILD_DIR_NINJA) && ninja RustDemangleUnitTests
+	cd $(BUILD_DIR_NINJA) && ninja RustSymbolDemanglingUnitTests
 
 	# TODO: A common but dirty solution, people should learn about rpath
 	# http://stackoverflow.com/a/12399085/598057
-	cd $(RUSTDEMANGLE_UNITTESTS_DIR) && LD_LIBRARY_PATH=$(BUILD_DIR_NINJA)/lib $(RUSTDEMANGLE)
+	cd $(RSD_UNITTESTS_DIR) && LD_LIBRARY_PATH=$(BUILD_DIR_NINJA)/lib $(RSD)
 
 test_integration:
 	# TODO: also run unit tests using ninja
@@ -38,9 +36,6 @@ build_xcode: ## Build Xcode project with CMake.
 	cd $(BUILD_DIR_XCODE) && cmake ../ -G Xcode \
 	  $(CMAKE_COMMAND_LINE_DEBUG_FLAGS)
 
-	# -DCMAKE_TOOLCHAIN_FILE=$(RUSTDEMANGLE_CMAKE_TOOLCHAIN)
-
-
 rebuild_xcode: build_xcode reopen ## Build Xcode project with CMake, kill Xcode, reopen the project in Xcode
 
 build_ninja: ## Build Ninja project with CMake.
@@ -49,19 +44,19 @@ build_ninja: ## Build Ninja project with CMake.
 	rm -rfv $(BUILD_DIR_NINJA)/CMakeCache.txt
 	cd $(BUILD_DIR_NINJA) && cmake ../ -G Ninja \
 	  $(CMAKE_COMMAND_LINE_DEBUG_FLAGS)
-	 # -DCMAKE_TOOLCHAIN_FILE=$(RUSTDEMANGLE_CMAKE_TOOLCHAIN)
+	 # -DCMAKE_TOOLCHAIN_FILE=$(RSD_CMAKE_TOOLCHAIN)
 
 ## Xcode-specific tools.
 ## TODO: maybe extract to Makefile.Xcode?
-open: ## Open RustDemangle.xcodeproj in Xcode
-	open BuildXcode/RustDemangle.xcodeproj
+open: ## Open RustSymbolDemangling.xcodeproj in Xcode
+	open BuildXcode/RustSymbolDemangling.xcodeproj
 
 # This reopen task is mostly needed to do a work that involves serious
 # modifications of CMake's files: **/CMakeLists.txt and toolchain files.
 # Xcode does not pickup all of the changes in CMake without being reopened.
-reopen: ## Kill Xcode and open RustDemangle.xcodeproj in Xcode.
+reopen: ## Kill Xcode and open RustSymbolDemangling.xcodeproj in Xcode.
 	killall Xcode || true
-	open BuildXcode/RustDemangle.xcodeproj
+	open BuildXcode/RustSymbolDemangling.xcodeproj
 
 clean: clean_ninja clean_xcode ## Delete CMake build caches: Xcode and Ninja.
 
