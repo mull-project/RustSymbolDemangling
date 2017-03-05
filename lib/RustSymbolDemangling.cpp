@@ -39,8 +39,8 @@ std::string RustSymbolDemangle(std::string &s, bool skipHashes) {
 
   if (success == false) return std::string(s);
 
-    std::string result = RSDDemangleComponents(components, skipHashes);
-    return result;
+  std::string result = RSDDemangleComponents(components, skipHashes);
+  return result;
 }
 
 bool RSDIsRustHash(std::string &string) {
@@ -144,6 +144,8 @@ std::string RSDDemangleComponents(vector<string>& components, bool skipHashes) {
 
           componentStartIndex += 1;
         }
+
+        continue;
       }
 
       if (component.compare(componentStartIndex, strlen("$"), "$") == 0) {
