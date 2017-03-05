@@ -1,5 +1,5 @@
 set(rustdemangle_source_files
-  RustSymbolDemangle.cpp
+  RustSymbolDemangling.cpp
 )
 
 file(GLOB_RECURSE rustdemangle_header_files ${RUSTDEMANGLE_SOURCE_DIR}/*.h)

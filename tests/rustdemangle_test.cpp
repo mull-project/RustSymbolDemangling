@@ -1,5 +1,5 @@
 
-#include "RustSymbolDemangle.h"
+#include "RustSymbolDemangling.h"
 
 #include "gtest/gtest.h"
 
