@@ -1,5 +1,4 @@
 
 #include <string>
-#include <vector>
 
-std::string RustSymbolDemangle(std::string &s, bool skipHashes = false);
+std::string RustSymbolDemangle(const std::string &s, bool skipHashes = false);

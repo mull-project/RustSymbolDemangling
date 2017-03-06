@@ -2,22 +2,39 @@
 #include "RustSymbolDemangling.h"
 
 #include <assert.h>
-#include <iostream>
-#include <limits>
 #include <map>
 #include <vector>
 
 using namespace std;
 
-bool RSDParseComponents(std::string &inputString,
+#pragma mark - Private: function prototypes
+
+bool RSDParseComponents(const std::string &inputString,
                         std::vector<std::string>& components);
 
-std::string RSDDemangleComponents(std::vector<std::string>& components,
+std::string RSDDemangleComponents(const std::vector<std::string>& components,
                                   bool skipHashes = false);
 
-bool RSDIsRustHash(std::string &string);
+bool RSDIsRustHash(const std::string &string);
 
-static map<string, string> RustDemangleDollarMap = {
+#pragma mark - Public
+
+std::string RustSymbolDemangle(const std::string &s, bool skipHashes) {
+  vector<string> components;
+
+  bool success = RSDParseComponents(s, components);
+
+  if (success == false) {
+    return std::string(s);
+  }
+
+  std::string result = RSDDemangleComponents(components, skipHashes);
+  return result;
+}
+
+#pragma mark - Private
+
+static map<string, string> RSDDollarMap = {
   { "$SP$", "@" },
   { "$BP$", "*" },
   { "$RF$", "&" },
@@ -41,17 +58,7 @@ static map<string, string> RustDemangleDollarMap = {
   { "$u22$", "\""}
 };
 
-std::string RustSymbolDemangle(std::string &s, bool skipHashes) {
-  vector<string> components;
-  bool success = RSDParseComponents(s, components);
-
-  if (success == false) return std::string(s);
-
-  std::string result = RSDDemangleComponents(components, skipHashes);
-  return result;
-}
-
-bool RSDIsRustHash(std::string &string) {
+bool RSDIsRustHash(const std::string &string) {
   if (string.at(0) != 'h') {
     return false;
   }
@@ -61,7 +68,7 @@ bool RSDIsRustHash(std::string &string) {
   });
 }
 
-bool RSDParseComponents(std::string &s, vector<string>& components) {
+bool RSDParseComponents(const std::string &s, vector<string>& components) {
 
   bool valid = true;
 
@@ -121,11 +128,11 @@ bool RSDParseComponents(std::string &s, vector<string>& components) {
   return true;
 }
 
-std::string RSDDemangleComponents(vector<string>& components, bool skipHashes) {
+std::string RSDDemangleComponents(const vector<string>& components, bool skipHashes) {
   std::string result;
 
   for (int index = 0; index < components.size(); ++index) {
-    std::string &component = components.at(index);
+    const std::string &component = components.at(index);
 
     if (skipHashes &&
         index == (components.size() - 1) &&
@@ -137,53 +144,56 @@ std::string RSDDemangleComponents(vector<string>& components, bool skipHashes) {
       result.append("::");
     }
 
-    int componentStartIndex = 0;
+    int componentOffset = 0;
 
     if (component.compare(0, strlen("_$"), "_$") == 0) {
-      componentStartIndex = 1;
+      componentOffset = 1;
     }
 
-    while (componentStartIndex < component.size()) {
-      if (component.compare(componentStartIndex, strlen("."), ".") == 0) {
-        if ((componentStartIndex + 1) < component.size() &&
-            component.compare(componentStartIndex + 1, strlen("."), ".") == 0) {
+    while (componentOffset < component.size()) {
+      if (component.compare(componentOffset, strlen("."), ".") == 0) {
+        if ((componentOffset + 1) < component.size() &&
+            component.compare(componentOffset + 1, strlen("."), ".") == 0) {
           result.append("::");
 
-          componentStartIndex += 2;
+          componentOffset += 2;
         } else {
           result.append(".");
 
-          componentStartIndex += 1;
+          componentOffset += 1;
         }
 
         continue;
       }
 
-      if (component.compare(componentStartIndex, strlen("$"), "$") == 0) {
-
-        for (auto it = RustDemangleDollarMap.begin();
-             it != RustDemangleDollarMap.end();
-             ++it) {
-
+      if (component.compare(componentOffset, strlen("$"), "$") == 0) {
+        bool matchFound = false;
+        for (auto it = RSDDollarMap.begin(); it != RSDDollarMap.end(); ++it) {
           string key = it->first;
 
-          if (component.compare(componentStartIndex, key.length(), key) == 0) {
+          if (component.compare(componentOffset, key.length(), key) == 0) {
+            matchFound = true;
 
             string &value = it->second;
 
             result.append(value);
 
-            componentStartIndex += key.length();
+            componentOffset += key.length();
 
             break;
           }
         }
 
+        if (matchFound == false) {
+          result.append("$");
+          componentOffset += 1;
+        }
+
         continue;
       }
 
-      result.append(component.substr(componentStartIndex, 1));
-      componentStartIndex++;
+      result.append(component.substr(componentOffset, 1));
+      componentOffset++;
     }
   }
 

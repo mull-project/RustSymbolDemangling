@@ -81,6 +81,13 @@ TEST(RustSymbolDemangle, dollar_many) {
   ASSERT_EQ(output, "test*test::foob");
 }
 
+TEST(RustSymbolDemangle, dollar_unknownCombination) {
+  std::string original = "_ZN8$ZZ$testE";
+  std::string output = RustSymbolDemangle(original);
+
+  ASSERT_EQ(output, "$ZZ$test");
+}
+
 TEST(RustSymbolDemangle, windows_style_one_component) {
   std::string original = "ZN4testE";
 
@@ -109,6 +116,57 @@ TEST(RustSymbolDemangle, demangle_rustHashes) {
 
   ASSERT_EQ(output, "foo::h05af221e174051e9");
   ASSERT_EQ(outputWithoutHash, "foo");
+}
+
+TEST(RustSymbolDemangle, demangle_rustHashes_edgeCases) {
+  {
+    // One element, no hash.
+    std::string original = "_ZN3fooE";
+    std::string output = RustSymbolDemangle(original, true);
+    ASSERT_EQ(output, "foo");
+  }
+
+  {
+    // Two elements, no hash.
+    std::string original = "_ZN3foo3barE";
+    std::string output = RustSymbolDemangle(original, true);
+    ASSERT_EQ(output, "foo::bar");
+  }
+
+  {
+    // Longer-than-normal hash.
+    std::string original = "_ZN3foo20h05af221e174051e9abcE";
+    std::string output = RustSymbolDemangle(original, true);
+    ASSERT_EQ(output, "foo");
+  }
+
+  {
+    // Shorter-than-normal hash.
+    std::string original = "_ZN3foo5h05afE";
+    std::string output = RustSymbolDemangle(original, true);
+    ASSERT_EQ(output, "foo");
+  }
+
+  {
+    // Valid hash, but not at the end.
+    std::string original = "_ZN17h05af221e174051e93fooE";
+    std::string output = RustSymbolDemangle(original, true);
+    ASSERT_EQ(output, "h05af221e174051e9::foo");
+  }
+
+  {
+    // Not a valid hash, missing the 'h'.
+    std::string original = "_ZN3foo16ffaf221e174051e9E";
+    std::string output = RustSymbolDemangle(original, true);
+    ASSERT_EQ(output, "foo::ffaf221e174051e9");
+  }
+
+  {
+    // Not a valid hash, has a non-hex-digit.
+    std::string original = "_ZN3foo17hg5af221e174051e9E";
+    std::string output = RustSymbolDemangle(original, true);
+    ASSERT_EQ(output, "foo::hg5af221e174051e9");
+  }
 }
 
 #pragma mark - Test: RSDIsRustHash()
